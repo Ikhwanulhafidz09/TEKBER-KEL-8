@@ -1,4 +1,5 @@
 **ITS Sarpras**
+
 <img width="585" height="552" alt="image" src="https://github.com/user-attachments/assets/c664a3f7-2cf4-468b-a8e3-84da02442c05" />
 
 Aplikasi ITS Sarpras merupakan sebuah platform digital yang dikembangkan untuk memfasilitasi dan menyederhanakan proses peminjaman sarana dan prasarana di lingkungan Institut Teknologi Sepuluh Nopember (ITS). Tujuan utama dari aplikasi ini adalah untuk memberikan kemudahan akses bagi mahasiswa dan mahasiswi ITS dalam mengelola kebutuhan peminjaman fasilitas kampus, mulai dari ruangan hingga peralatan lainnya, secara efisien dan terstruktur melalui satu sistem terpusat.
