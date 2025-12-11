@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+// --- IMPORT HALAMAN ---
 import 'pages/home_page.dart';
 import 'pages/search_page.dart';
-import 'pages/informations/information_page.dart'; // Sesuaikan path ini
+import 'pages/informations/information_page.dart';
+import 'pages/welcome_screen/welcome.dart'; // Import WelcomeScreen disini
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,8 +17,6 @@ Future<void> main() async {
 
   runApp(const MyApp());
 }
-
-final supabase = Supabase.instance.client;
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -29,35 +30,32 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1E3A8A)),
         useMaterial3: true,
         fontFamily: 'Roboto',
-        appBarTheme: const AppBarTheme(
-          centerTitle: true,
-          elevation: 0,
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
-        ),
       ),
-      home: const MainScreen(),
+      // Set WelcomeScreen sebagai halaman pertama
+      home: const WelcomeScreen(), 
     );
   }
 }
+
+// ============================================
+// MAIN SCREEN (Halaman Utama dengan BottomNav)
+// ============================================
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => MainScreenState(); // Ubah ke MainScreenState
+  State<MainScreen> createState() => MainScreenState();
 }
 
-// PERUBAHAN PENTING: Hapus tanda underscore (_) agar class ini PUBLIC
 class MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   int _infoTabInitialIndex = 0;
 
-  // Fungsi ini akan dipanggil dari HomePage
   void openInfoPage(int subTabIndex) {
     setState(() {
-      _selectedIndex = 3; // Pindah ke Tab Info (index 3)
-      _infoTabInitialIndex = subTabIndex; // Atur sub-tab (0=Alur, 1=FAQ, 2=Kirim)
+      _selectedIndex = 3;
+      _infoTabInitialIndex = subTabIndex;
     });
   }
 
@@ -69,13 +67,12 @@ class MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // List halaman ditaruh di sini agar bisa akses variabel state
     final List<Widget> pages = [
-      const HomePage(),      // Index 0
-      const Center(child: Text('Halaman Riwayat')), // Index 1
-      const SearchPage(),    // Index 2
-      InformationPage(initialIndex: _infoTabInitialIndex), // Index 3
-      const Center(child: Text('Halaman Profile')), // Index 4
+      const HomePage(),
+      const Center(child: Text('Halaman Riwayat')),
+      const SearchPage(),
+      InformationPage(initialIndex: _infoTabInitialIndex),
+      const Center(child: Text('Halaman Profile')),
     ];
 
     return Scaffold(
@@ -89,8 +86,6 @@ class MainScreenState extends State<MainScreen> {
         selectedItemColor: const Color(0xFF1E3A8A),
         unselectedItemColor: Colors.grey,
         currentIndex: _selectedIndex,
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
         onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
