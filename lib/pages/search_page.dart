@@ -12,6 +12,9 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
   final SupabaseClient supabase = Supabase.instance.client;
   final TextEditingController _searchController = TextEditingController();
 
+  // GANTI sesuai bucket Storage kamu
+  final String bucketName = 'room-images';
+
   int _selectedCapacity = 0;
   List<String> _selectedFacilities = [];
 
@@ -29,7 +32,8 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
 
     try {
       var q = supabase.from('rooms').select(
-          'id, nama_ruangan, deskripsi, kapasitas, lokasi, harga_sewa, facilities');
+        'id, nama_ruangan, deskripsi, kapasitas, lokasi, harga_sewa, facilities, image_path',
+      );
 
       if (query.trim().isNotEmpty) {
         q = q.or('nama_ruangan.ilike.%$query%,lokasi.ilike.%$query%');
@@ -55,6 +59,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
             'capacity': r['kapasitas'] ?? 0,
             'price': r['harga_sewa'] ?? 0,
             'facilities': List<String>.from(r['facilities'] ?? []),
+            'imagePath': (r['image_path'] ?? '').toString(),
           };
         }).toList();
       });
@@ -69,13 +74,9 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
     }
   }
 
-  void _searchRooms(String query) {
-    _fetchRooms(query: query);
-  }
+  void _searchRooms(String query) => _fetchRooms(query: query);
 
-  void _applyFilters() {
-    _fetchRooms(query: _searchController.text.trim());
-  }
+  void _applyFilters() => _fetchRooms(query: _searchController.text.trim());
 
   void _resetFilters() {
     setState(() {
@@ -85,6 +86,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
     _applyFilters();
   }
 
+  // ============ FILTER SHEET ============
   void _showFilterDialog() {
     showModalBottomSheet(
       context: context,
@@ -228,9 +230,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
       backgroundColor: Colors.grey[200],
       labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
       onSelected: (selected) {
-        setModalState(() {
-          _selectedCapacity = selected ? capacity : 0;
-        });
+        setModalState(() => _selectedCapacity = selected ? capacity : 0);
       },
     );
   }
@@ -255,12 +255,23 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
     );
   }
 
+  // ============ IMAGE URL BUILDER ============
+  String _roomImageUrl(String imagePath) {
+    // imagePath contoh dari DB: "teatera.jpg"
+    // Jika kamu simpan di folder, mis. "rooms/teatera.jpg", ini juga aman.
+
+    if (imagePath.trim().isEmpty) {
+      return 'https://via.placeholder.com/300x300.png?text=Room';
+    }
+
+    return supabase.storage.from(bucketName).getPublicUrl(imagePath);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
 
-      // AppBar mirip UI desain
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -280,7 +291,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
 
       body: Column(
         children: [
-          // Search bar (mirip desain)
+          // Search bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Container(
@@ -312,7 +323,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
             ),
           ),
 
-          // “Pencarian Cepat” label (sesuai desain)
+          // Label
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             child: Row(
@@ -329,7 +340,6 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
             ),
           ),
 
-          // List content
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
@@ -339,7 +349,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         itemCount: rooms.length,
                         itemBuilder: (context, index) {
-                          return _buildRoomCard(rooms[index], index);
+                          return _buildRoomCard(rooms[index]);
                         },
                       ),
           ),
@@ -364,20 +374,18 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
     );
   }
 
-  // Card layout yang mirip UI desain kamu
-  Widget _buildRoomCard(Map<String, dynamic> room, int index) {
+  // Card UI (mirip desain kamu) + pakai image storage
+  Widget _buildRoomCard(Map<String, dynamic> room) {
     final facilities = (room['facilities'] as List<String>);
-    final facilitiesText =
-        facilities.isEmpty ? '-' : facilities.join(', ');
+    final facilitiesText = facilities.isEmpty ? '-' : facilities.join(', ');
 
-    // placeholder image beda-beda sedikit biar nggak sama semua
-    final imageUrl = 'https://picsum.photos/seed/room$index/300/300';
+    final imageUrl = _roomImageUrl(room['imagePath'] ?? '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
         onTap: () {
-          // TODO: Navigate ke detail page kalau sudah ada
+          // TODO: navigate detail
         },
         borderRadius: BorderRadius.circular(16),
         child: Card(
@@ -398,6 +406,12 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
                     width: 115,
                     height: 115,
                     fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      width: 115,
+                      height: 115,
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.image_not_supported),
+                    ),
                   ),
                 ),
 
