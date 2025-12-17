@@ -1,6 +1,6 @@
 {
-    "name": "myits_sarprass",
-    "short_name": "myits_sarprass",
+    "name": "its_sarpras",
+    "short_name": "its_sarpras",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
