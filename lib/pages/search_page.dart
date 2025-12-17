@@ -18,6 +18,17 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
   int _selectedCapacity = 0;
   List<String> _selectedFacilities = [];
 
+  // ✅ BARU: filter tanggal & waktu
+  DateTime? _selectedDate;
+  ShiftOption? _selectedShift;
+
+  // shift (samakan dengan UI kamu)
+  final List<ShiftOption> _shiftOptions = const [
+    ShiftOption('Shift 1 (08.00 - 10.00)', 8, 0, 10, 0),
+    ShiftOption('Shift 2 (10.00 - 12.00)', 10, 0, 12, 0),
+    ShiftOption('Shift 3 (15.00 - 17.00)', 15, 0, 17, 0),
+  ];
+
   bool _loading = false;
   List<Map<String, dynamic>> rooms = [];
 
@@ -27,10 +38,54 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
     _fetchRooms();
   }
 
+  // ================== BOOKING OVERLAP ==================
+  // Booking overlap rule:
+  // booking.start_time < selectedEnd AND booking.end_time > selectedStart
+  Future<List<int>> _fetchBookedRoomIds(DateTime start, DateTime end) async {
+    final res = await supabase
+        .from('bookings')
+        .select('room_id')
+        .lt('start_time', end.toIso8601String())
+        .gt('end_time', start.toIso8601String());
+
+    final ids = <int>{};
+    for (final row in (res as List)) {
+      final rid = row['room_id'];
+      if (rid is int) ids.add(rid);
+    }
+    return ids.toList();
+  }
+
+  // ================= FETCH ROOMS =================
   Future<void> _fetchRooms({String query = ''}) async {
     setState(() => _loading = true);
 
     try {
+      // ✅ BARU: kalau tanggal+shift dipilih, hitung range waktu dan cari booked IDs
+      DateTime? start;
+      DateTime? end;
+      if (_selectedDate != null && _selectedShift != null) {
+        start = DateTime(
+          _selectedDate!.year,
+          _selectedDate!.month,
+          _selectedDate!.day,
+          _selectedShift!.startHour,
+          _selectedShift!.startMinute,
+        );
+        end = DateTime(
+          _selectedDate!.year,
+          _selectedDate!.month,
+          _selectedDate!.day,
+          _selectedShift!.endHour,
+          _selectedShift!.endMinute,
+        );
+      }
+
+      List<int> bookedIds = [];
+      if (start != null && end != null) {
+        bookedIds = await _fetchBookedRoomIds(start, end);
+      }
+
       var q = supabase.from('rooms').select(
         'id, nama_ruangan, deskripsi, kapasitas, lokasi, harga_sewa, facilities, image_path',
       );
@@ -45,6 +100,13 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
 
       if (_selectedFacilities.isNotEmpty) {
         q = q.contains('facilities', _selectedFacilities);
+      }
+
+      // ✅ BARU: exclude room yang sudah booked di range waktu
+      if (bookedIds.isNotEmpty) {
+        // supabase dart butuh format "(1,2,3)"
+        final inStr = '(${bookedIds.join(',')})';
+        q = q.not('id', 'in', inStr);
       }
 
       final data = await q.order('nama_ruangan');
@@ -75,13 +137,16 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
   }
 
   void _searchRooms(String query) => _fetchRooms(query: query);
-
   void _applyFilters() => _fetchRooms(query: _searchController.text.trim());
 
   void _resetFilters() {
     setState(() {
       _selectedCapacity = 0;
       _selectedFacilities.clear();
+
+      // ✅ BARU
+      _selectedDate = null;
+      _selectedShift = null;
     });
     _applyFilters();
   }
@@ -105,7 +170,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
               bottom: MediaQuery.of(context).viewInsets.bottom + 16,
             ),
             child: SizedBox(
-              height: MediaQuery.of(context).size.height * 0.65,
+              height: MediaQuery.of(context).size.height * 0.75,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -125,6 +190,10 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
                           setModalState(() {
                             _selectedCapacity = 0;
                             _selectedFacilities.clear();
+
+                            // ✅ BARU
+                            _selectedDate = null;
+                            _selectedShift = null;
                           });
                         },
                         child: const Text('Reset'),
@@ -133,6 +202,78 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
                   ),
 
                   const SizedBox(height: 16),
+
+                  // ✅ BARU: TANGGAL
+                  const Text(
+                    'Tanggal',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 10),
+                  InkWell(
+                    onTap: () async {
+                      final now = DateTime.now();
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: _selectedDate ?? now,
+                        firstDate: DateTime(now.year, now.month, now.day),
+                        lastDate: now.add(const Duration(days: 365)),
+                      );
+                      if (picked != null) {
+                        setModalState(() => _selectedDate = picked);
+                      }
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black26),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        _selectedDate == null
+                            ? 'Pilih tanggal'
+                            : '${_selectedDate!.day.toString().padLeft(2, '0')}/'
+                                '${_selectedDate!.month.toString().padLeft(2, '0')}/'
+                                '${_selectedDate!.year}',
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ✅ BARU: WAKTU (SHIFT)
+                  const Text(
+                    'Waktu',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.black26),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<ShiftOption>(
+                        value: _selectedShift,
+                        isExpanded: true,
+                        hint: const Text('Pilih shift'),
+                        items: _shiftOptions
+                            .map(
+                              (s) => DropdownMenuItem(
+                                value: s,
+                                child: Text(s.label),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) {
+                          setModalState(() => _selectedShift = val);
+                        },
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
 
                   // Capacity
                   const Text(
@@ -257,13 +398,9 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
 
   // ============ IMAGE URL BUILDER ============
   String _roomImageUrl(String imagePath) {
-    // imagePath contoh dari DB: "teatera.jpg"
-    // Jika kamu simpan di folder, mis. "rooms/teatera.jpg", ini juga aman.
-
     if (imagePath.trim().isEmpty) {
       return 'https://via.placeholder.com/300x300.png?text=Room';
     }
-
     return supabase.storage.from(bucketName).getPublicUrl(imagePath);
   }
 
@@ -374,7 +511,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
     );
   }
 
-  // Card UI (mirip desain kamu) + pakai image storage
+  // Card UI + image storage
   Widget _buildRoomCard(Map<String, dynamic> room) {
     final facilities = (room['facilities'] as List<String>);
     final facilitiesText = facilities.isEmpty ? '-' : facilities.join(', ');
@@ -509,4 +646,21 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
     _searchController.dispose();
     super.dispose();
   }
+}
+
+// ✅ BARU: model shift
+class ShiftOption {
+  final String label;
+  final int startHour;
+  final int startMinute;
+  final int endHour;
+  final int endMinute;
+
+  const ShiftOption(
+    this.label,
+    this.startHour,
+    this.startMinute,
+    this.endHour,
+    this.endMinute,
+  );
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'search_page.dart';
-import 'chat/live_chat_page.dart'; 
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -9,24 +8,6 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      
-      
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF1E3A8A), // Warna Biru ITS
-        elevation: 4,
-        shape: const CircleBorder(),
-        // Icon Headset / Support Agent
-        child: const Icon(Icons.support_agent, color: Colors.white, size: 28),
-        onPressed: () {
-          // Navigasi ke Halaman Chat
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const LiveChatPage()),
-          );
-        },
-      ),
-      // ----------------------------------------------
-
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -107,9 +88,9 @@ class HomePage extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.history,
-                          color: Color(0xFF1E3A8A),
+                          color: const Color(0xFF1E3A8A),
                           size: 24,
                         ),
                         const SizedBox(width: 8),
@@ -155,7 +136,7 @@ class HomePage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.2), // Perbaikan: withOpacity
+                        color: Colors.grey.withValues(alpha: 0.2),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -442,7 +423,7 @@ class HomePage extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.15), // Perbaikan: withOpacity
+                  color: Colors.grey.withValues(alpha: 0.15),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -453,7 +434,7 @@ class HomePage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E3A8A).withOpacity(0.1), // Perbaikan: withOpacity
+                    color: const Color(0xFF1E3A8A).withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
