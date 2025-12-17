@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'search_page.dart';
+import 'profile.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,9 +79,9 @@ class HomePage extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Riwayat Peminjaman Section
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -125,9 +125,9 @@ class HomePage extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Card Peminjaman
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -150,10 +150,7 @@ class HomePage extends StatelessWidget {
                         children: [
                           const Text(
                             'Room',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -185,7 +182,10 @@ class HomePage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _buildInfoRow(Icons.calendar_today, '20/01/25 - 22/01/25'),
+                      _buildInfoRow(
+                        Icons.calendar_today,
+                        '20/01/25 - 22/01/25',
+                      ),
                       const SizedBox(height: 8),
                       _buildInfoRow(Icons.access_time, '13.00 - 18.00 WIB'),
                       const SizedBox(height: 8),
@@ -217,9 +217,9 @@ class HomePage extends StatelessWidget {
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 32),
-                
+
                 // Pencarian Cepat Section
                 Row(
                   children: [
@@ -239,9 +239,9 @@ class HomePage extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Search Bar
                 TextField(
                   decoration: InputDecoration(
@@ -269,9 +269,9 @@ class HomePage extends StatelessWidget {
                     );
                   },
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Cari Ruangan Button
                 SizedBox(
                   width: double.infinity,
@@ -301,9 +301,9 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 32),
-                
+
                 // Informasi Lainnya Section
                 Row(
                   children: [
@@ -323,9 +323,9 @@ class HomePage extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 // Info Cards Grid
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -335,11 +335,7 @@ class HomePage extends StatelessWidget {
                       Icons.folder_outlined,
                       () {},
                     ),
-                    _buildInfoCard(
-                      'FAQ',
-                      Icons.chat_bubble_outline,
-                      () {},
-                    ),
+                    _buildInfoCard('FAQ', Icons.chat_bubble_outline, () {}),
                     _buildInfoCard(
                       'Kirim\nPertanyaan',
                       Icons.help_outline,
@@ -347,14 +343,14 @@ class HomePage extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 20),
               ],
             ),
           ),
         ),
       ),
-      
+
       // Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
@@ -363,19 +359,29 @@ class HomePage extends StatelessWidget {
         currentIndex: 0,
         selectedFontSize: 12,
         unselectedFontSize: 12,
+
+        onTap: (index) {
+          if (index == 2) {
+            // Search
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => SearchRuanganPage()),
+            );
+          }
+
+          if (index == 4) {
+            // Profile
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => ProfilePage()),
+            );
+          }
+        },
+
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'Riwayat',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Search',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Riwayat'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
           BottomNavigationBarItem(
             icon: Icon(Icons.info_outline),
             label: 'Info',
@@ -392,19 +398,9 @@ class HomePage extends StatelessWidget {
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 20,
-          color: Colors.grey[700],
-        ),
+        Icon(icon, size: 20, color: Colors.grey[700]),
         const SizedBox(width: 8),
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[700],
-          ),
-        ),
+        Text(text, style: TextStyle(fontSize: 14, color: Colors.grey[700])),
       ],
     );
   }
@@ -437,11 +433,7 @@ class HomePage extends StatelessWidget {
                     color: const Color(0xFF1E3A8A).withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    icon,
-                    color: const Color(0xFF1E3A8A),
-                    size: 28,
-                  ),
+                  child: Icon(icon, color: const Color(0xFF1E3A8A), size: 28),
                 ),
                 const SizedBox(height: 12),
                 Text(
