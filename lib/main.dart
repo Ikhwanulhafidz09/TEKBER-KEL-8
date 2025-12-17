@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'supabase_config.dart';
-import 'booking_form_screen.dart';
 
-void main() async {
+import 'supabase_config.dart';
+import 'detail_ruangan_screen.dart';
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(url: SupaConfig.url, anonKey: SupaConfig.anonKey);
@@ -16,13 +17,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
-
-      // ❗ FIX DISINI → kasih roomName default biar tidak error
-      home: const BookingFormScreen(
-        roomName: "Teater A", // bebas mau apa—harus ada
-      ),
+      home: DetailRuanganScreen(roomId: 1, roomName: 'TW-101'),
     );
   }
 }
