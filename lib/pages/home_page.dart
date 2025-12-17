@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'search_page.dart';
-import '../main.dart'; // Import ini PENTING agar bisa baca 'MainScreenState'
+import '../main.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -112,16 +112,13 @@ class HomePage extends StatelessWidget {
                     prefixIcon: const Icon(Icons.search),
                   ),
                   onTap: () {
-                    // Pindah ke Tab Search (Index 2) melalui MainScreenState
                     context.findAncestorStateOfType<MainScreenState>()?.openInfoPage(0); 
-                    // Note: Sebenarnya Search itu tab index 2, tapi function openInfoPage khusus untuk tab 3.
-                    // Jika mau search, manual set index aja. Tapi biarkan dulu sesuai request 'Informasi'.
                   },
                 ),
                 
                 const SizedBox(height: 32),
                 
-                // --- INFORMASI LAINNYA (PERBAIKAN UTAMA ADA DI SINI) ---
+                // --- INFORMASI LAINNYA
                 Row(
                   children: const [
                     Icon(Icons.info_outline, color: Color(0xFF1E3A8A), size: 24),
@@ -138,7 +135,6 @@ class HomePage extends StatelessWidget {
                       context,
                       'Alur\nPenjelasan',
                       Icons.folder_outlined,
-                      // Logika: Cari MainScreenState di atas, lalu panggil openInfoPage(0)
                       () => context.findAncestorStateOfType<MainScreenState>()?.openInfoPage(0),
                     ),
                     _buildInfoCard(

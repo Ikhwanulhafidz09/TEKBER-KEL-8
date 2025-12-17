@@ -11,24 +11,31 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Library tambahan
+  # UI & Icons
   cupertino_icons: ^1.0.8
+
+  # Database
   supabase_flutter: ^2.10.3
-  url_launcher: ^6.2.5
-  file_picker: ^8.0.0
-  youtube_player_flutter: ^9.0.1
-  
-  # CATATAN: Baris 'assets' yang error tadi sudah saya hapus dari sini.
+
+  # --- DARI FITUR PROFILE ---
+  image_picker: ^1.0.4          # Untuk ambil foto dari galeri/kamera
+  shared_preferences: ^2.0.15   # Untuk simpan sesi login/data lokal
+  path_provider: ^2.0.14        # Untuk akses direktori file sistem
+
+  # --- DARI FITUR INFO & SEARCH ---
+  url_launcher: ^6.2.5          # Untuk buka link browser/WA
+  file_picker: ^8.0.0           # Untuk upload dokumen/file
+  youtube_player_flutter: ^9.0.1 # Untuk putar video YouTube
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
 
-# Bagian Konfigurasi Flutter
 flutter:
   uses-material-design: true
 
-  # DAFTARKAN ASSETS DISINI (Indentasinya harus pas)
+  # --- KONFIGURASI ASET ---
+  # Pastikan folder 'assets' dan 'images' sudah dibuat di dalam project
   assets:
     - assets/images/
