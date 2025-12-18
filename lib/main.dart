@@ -19,7 +19,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: DetailRuanganScreen(roomId: 1, roomName: 'TW-101'),
+      home: DetailRuanganScreen(
+        roomId: 1,
+        roomName: 'Teater A', // ⬅️ INI YANG TADI KURANG
+      ),
     );
   }
 }

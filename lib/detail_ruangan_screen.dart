@@ -14,134 +14,129 @@ class DetailRuanganScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F2),
+      backgroundColor: const Color(0xFFF3F3F3),
       body: Center(
         child: Container(
-          width: 360,
-          margin: const EdgeInsets.symmetric(vertical: 24),
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                // CARD
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // BACK
-                      Row(
-                        children: const [
-                          Icon(Icons.arrow_back_ios, size: 16),
-                          SizedBox(width: 4),
-                          Text('Kembali', style: TextStyle(fontSize: 12)),
-                        ],
+          width: 380,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Back
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+              ),
+
+              const SizedBox(height: 8),
+
+              // Title
+              Center(
+                child: Column(
+                  children: [
+                    Text(
+                      roomName,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
                       ),
+                    ),
+                    const Text('Room', style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
+              ),
 
-                      const SizedBox(height: 12),
+              const SizedBox(height: 16),
 
-                      // TITLE
-                      Center(
-                        child: Column(
-                          children: [
-                            Text(
-                              roomName,
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Text(
-                              'Room',
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // IMAGE
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.network(
-                          'https://picsum.photos/400/250',
-                          height: 180,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // DESCRIPTION
-                      const Text(
-                        'Description',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 6),
-                      const Text(
-                        'Tower ITS, menyediakan berbagai ruang kelas dengan kapasitas besar.',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // INFO
-                      Row(
-                        children: const [
-                          Icon(Icons.people, size: 16),
-                          SizedBox(width: 8),
-                          Text('Kapasitas 150 Orang'),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: const [
-                          Icon(Icons.location_on, size: 16),
-                          SizedBox(width: 8),
-                          Text('Gedung MIPA Tower'),
-                        ],
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // BUTTON
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF1E3A8A),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => BookingFormScreen(
-                                  roomId: roomId,
-                                  roomName: roomName,
-                                ),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            'Ajukan Peminjaman',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ],
+              // ✅ IMAGE — FIXED
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.network(
+                  'https://htotpkpeipxtogqzykin.supabase.co/storage/v1/object/public/room-images/teatera.jpg',
+                  height: 180,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    height: 180,
+                    color: Colors.grey.shade200,
+                    child: const Center(
+                      child: Icon(Icons.broken_image, size: 40),
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Description
+              const Text(
+                'Description',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Ruang teater dengan kapasitas besar.',
+                style: TextStyle(color: Colors.grey),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Capacity
+              Row(
+                children: const [
+                  Icon(Icons.people, size: 18),
+                  SizedBox(width: 8),
+                  Text('Kapasitas 150 Orang'),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              // Location
+              Row(
+                children: const [
+                  Icon(Icons.location_on, size: 18),
+                  SizedBox(width: 8),
+                  Text('Gedung Teater'),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // BUTTON
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2F3E7E),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BookingFormScreen(
+                          roomId: roomId,
+                          roomName: roomName,
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'Ajukan Peminjaman',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
