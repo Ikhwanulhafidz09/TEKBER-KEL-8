@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'detail_ruangan_screen.dart';
+
 
 class SearchRuanganPage extends StatefulWidget {
   const SearchRuanganPage({super.key});
@@ -522,7 +524,15 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
       margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
         onTap: () {
-          // TODO: navigate detail
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => DetailRuanganScreen(
+                roomId: int.parse(room['id'].toString()),
+                roomName: room['name'] ?? '-',
+              ),
+            ),
+          );
         },
         borderRadius: BorderRadius.circular(16),
         child: Card(
