@@ -58,7 +58,7 @@ myits_sarprass/
 │   ├── main.dart          # Entry point aplikasi & pengaturan routing
 │   └── supabase_config.dart # Konfigurasi koneksi ke Supabase
 └── pubspec.yaml           # Daftar dependencies & library yang digunakan
-
+```
 
 ## 🛠️ Tech Stack
 * **Framework:** Flutter (Dart)
