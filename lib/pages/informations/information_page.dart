@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:typed_data'; // Penting untuk pengolahan data file
+import 'package:flutter/foundation.dart' show kIsWeb; // Penting untuk cek Web/HP
 import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -21,21 +23,18 @@ class _InformationPageState extends State<InformationPage>
   @override
   void initState() {
     super.initState();
-    // Inisialisasi TabController dengan index awal dari Home Page
     _tabController = TabController(
         length: 3, vsync: this, initialIndex: widget.initialIndex);
   }
 
-  // --- BAGIAN PENTING (Agar Tab berubah saat diklik dari Home) ---
+  // Update tab jika ada perubahan dari parent widget
   @override
   void didUpdateWidget(InformationPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Jika parent (MainScreen) mengirim index baru, pindahkan tab
     if (widget.initialIndex != oldWidget.initialIndex) {
       _tabController.animateTo(widget.initialIndex);
     }
   }
-  // -------------------------------------------------------------
 
   @override
   void dispose() {
@@ -54,8 +53,7 @@ class _InformationPageState extends State<InformationPage>
         ),
         backgroundColor: Colors.white,
         elevation: 0,
-        // Hapus tombol back otomatis agar tidak ada panah di kiri atas
-        automaticallyImplyLeading: false, 
+        automaticallyImplyLeading: false, // Hapus tombol back default
         bottom: TabBar(
           controller: _tabController,
           labelColor: const Color(0xFF1E3A8A),
@@ -93,11 +91,7 @@ class _AlurPenjelasanTab extends StatefulWidget {
 
 class _AlurPenjelasanTabState extends State<_AlurPenjelasanTab> {
   late YoutubePlayerController _controller;
-
-  // Link Video
   final String _videoUrl = 'https://youtu.be/dG_gEYUfEjI?si=YaS0v4FI2fmXdrIX';
-  
-  // Link Dokumen
   final String _documentUrl = 'https://drive.google.com/file/d/1LZqBmON3dtwLWxKsqsLaY_-3ZtYfHG9q/view?usp=drive_link';
 
   @override
@@ -121,7 +115,6 @@ class _AlurPenjelasanTabState extends State<_AlurPenjelasanTab> {
 
   Future<void> _downloadDocument() async {
     final Uri url = Uri.parse(_documentUrl);
-    // Mode externalApplication agar membuka browser/drive app
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -143,8 +136,6 @@ class _AlurPenjelasanTabState extends State<_AlurPenjelasanTab> {
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 12),
-          
-          // --- YOUTUBE PLAYER ---
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: YoutubePlayer(
@@ -157,7 +148,6 @@ class _AlurPenjelasanTabState extends State<_AlurPenjelasanTab> {
               ),
             ),
           ),
-          
           const SizedBox(height: 24),
           const Text(
             'Alur Peminjaman',
@@ -262,7 +252,7 @@ class _FAQTab extends StatelessWidget {
   }
 }
 
-// ================= TAB 3: KIRIM PERTANYAAN =================
+// ================= TAB 3: KIRIM PERTANYAAN (UPDATED) =================
 class _KirimPertanyaanTab extends StatefulWidget {
   const _KirimPertanyaanTab();
 
@@ -282,11 +272,12 @@ class _KirimPertanyaanTabState extends State<_KirimPertanyaanTab> {
     super.dispose();
   }
 
-  // Fungsi Pilih File
+  // --- 1. PICK FILE (FIXED FOR WEB) ---
   Future<void> _pickFile() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['jpg', 'png', 'pdf', 'doc', 'docx'],
+      withData: true, // PENTING: Agar bytes terbaca di Web
     );
 
     if (result != null) {
@@ -296,14 +287,13 @@ class _KirimPertanyaanTabState extends State<_KirimPertanyaanTab> {
     }
   }
 
-  // Fungsi Hapus File
   void _clearFile() {
     setState(() {
       _pickedFile = null;
     });
   }
 
-  // Fungsi Kirim ke Supabase
+  // --- 2. SUBMIT FUNCTION (FIXED) ---
   Future<void> _submitQuestion() async {
     if (_questionController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -317,25 +307,60 @@ class _KirimPertanyaanTabState extends State<_KirimPertanyaanTab> {
     try {
       String? attachmentUrl;
 
-      // 1. Upload File jika ada
-      if (_pickedFile != null && _pickedFile!.path != null) {
-        final file = File(_pickedFile!.path!);
+      // PROSES UPLOAD FILE
+      if (_pickedFile != null) {
+        final user = Supabase.instance.client.auth.currentUser;
+        if (user == null) {
+           ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('User session expired. Login lagi.')),
+          );
+          return;
+        }
+
         final fileExt = _pickedFile!.extension ?? 'file';
-        final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+        // Nama file unik: ID User + Timestamp
+        final fileName = '${user.id}/${DateTime.now().millisecondsSinceEpoch}.$fileExt';
         
-        // Upload ke Storage Bucket 'files'
+        // Ambil Bytes (Binary Data) - Aman untuk Web & HP
+        Uint8List fileBytes;
+
+        if (kIsWeb) {
+          // Logic Web: Ambil dari bytes langsung
+          if (_pickedFile!.bytes != null) {
+            fileBytes = _pickedFile!.bytes!;
+          } else {
+             throw Exception("File corrupt (bytes empty)");
+          }
+        } else {
+          // Logic HP: Ambil dari bytes jika ada, atau baca dari path
+          if (_pickedFile!.bytes != null) {
+            fileBytes = _pickedFile!.bytes!;
+          } else if (_pickedFile!.path != null) {
+            fileBytes = await File(_pickedFile!.path!).readAsBytes();
+          } else {
+            throw Exception("Gagal membaca file di device");
+          }
+        }
+
+        // Upload ke Bucket 'documents' (Ganti nama bucket jika beda)
         await Supabase.instance.client.storage
-            .from('files')
-            .upload(fileName, file);
+            .from('documents') 
+            .uploadBinary(
+              fileName,
+              fileBytes,
+              fileOptions: FileOptions(contentType: 'application/$fileExt'),
+            );
         
         // Ambil Public URL
         attachmentUrl = Supabase.instance.client.storage
-            .from('files')
+            .from('documents')
             .getPublicUrl(fileName);
       }
 
-      // 2. Insert ke Database
+      // INSERT KE DATABASE
+      // Pastikan nama tabel benar: 'user_questions' atau 'questions'
       await Supabase.instance.client.from('user_questions').insert({
+        'user_id': Supabase.instance.client.auth.currentUser?.id, 
         'question_text': _questionController.text,
         'priority': _selectedPriority,
         'attachment_url': attachmentUrl,
@@ -343,7 +368,7 @@ class _KirimPertanyaanTabState extends State<_KirimPertanyaanTab> {
       });
 
       if (mounted) {
-        // Pindah ke halaman sukses
+        // Navigasi ke halaman sukses
         Navigator.of(context).push(
           PageRouteBuilder(
             opaque: false,
@@ -361,7 +386,7 @@ class _KirimPertanyaanTabState extends State<_KirimPertanyaanTab> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Terjadi kesalahan: $e')),
+          SnackBar(content: Text('Gagal mengirim: $e')),
         );
       }
     } finally {
@@ -384,7 +409,6 @@ class _KirimPertanyaanTabState extends State<_KirimPertanyaanTab> {
           ),
           const SizedBox(height: 16),
           
-          // Input Field
           TextField(
             controller: _questionController,
             maxLines: 5,
@@ -405,7 +429,6 @@ class _KirimPertanyaanTabState extends State<_KirimPertanyaanTab> {
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
           
-          // --- UPLOAD BUTTON ---
           InkWell(
             onTap: _pickFile,
             child: Container(
@@ -434,7 +457,7 @@ class _KirimPertanyaanTabState extends State<_KirimPertanyaanTab> {
                   ),
                   if (_pickedFile != null)
                     GestureDetector(
-                      onTap: _clearFile, // Tombol X untuk hapus file
+                      onTap: _clearFile,
                       child: const Icon(Icons.close, size: 20, color: Colors.red),
                     )
                 ],
@@ -446,7 +469,6 @@ class _KirimPertanyaanTabState extends State<_KirimPertanyaanTab> {
           const Text('Sifat Pertanyaan',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
           
-          // Radio Buttons
           Row(
             children: [
               _buildRadio('Rendah'),
@@ -459,7 +481,6 @@ class _KirimPertanyaanTabState extends State<_KirimPertanyaanTab> {
 
           const SizedBox(height: 24),
           
-          // Button Kirim
           SizedBox(
             width: double.infinity,
             height: 50,
