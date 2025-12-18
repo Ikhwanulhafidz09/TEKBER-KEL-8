@@ -7,6 +7,10 @@
 > **Final Project Teknologi Bergerak - Kelompok 8**
 > Institut Teknologi Sepuluh Nopember (ITS)
 
+<div align="center">
+  <img src="assets/images/logo-full.png" alt="Logo myITS Sarpras" width="100%">
+</div>
+
 ## 📖 Tentang Aplikasi
 **myITS Sarpras** adalah aplikasi mobile yang dirancang untuk mendigitalisasi proses peminjaman sarana dan prasarana di lingkungan kampus ITS. Aplikasi ini mempermudah mahasiswa dan civitas akademika dalam mencari ruangan, mengajukan peminjaman, memantau status persetujuan, hingga melihat riwayat aktivitas secara *real-time*.
 
@@ -23,7 +27,22 @@ Aplikasi ini dibangun menggunakan **Flutter** untuk antarmuka yang responsif dan
 ## 📂 Struktur Folder Proyek
 Berikut adalah struktur direktori utama source code aplikasi ini beserta penjelasannya:
 
-myits_sarprass/ ├── assets/ # Menyimpan aset statis (Logo, Icon, Placeholder) ├── docs/ # Dokumentasi Tugas (ERD, Use Case, Bukti Database) ├── lib/ # Source code utama aplikasi (Dart) │ ├── models/ # Definisi model data (User, Peminjaman, Chat) │ ├── pages/ # Halaman-halaman UI (User Interface) │ │ ├── booking/ # Fitur form & detail peminjaman │ │ ├── chat/ # Fitur live chat │ │ ├── informations/ # Fitur informasi, FAQ, & upload pertanyaan │ │ ├── login-register/# Fitur autentikasi pengguna │ │ └── profile/ # Fitur manajemen profil & edit akun │ ├── widgets/ # Komponen UI reusable (Card, Timeline, Input) │ ├── main.dart # Entry point aplikasi & pengaturan routing │ └── supabase_config.dart # Konfigurasi koneksi ke Supabase └── pubspec.yaml # Daftar dependencies & library yang digunakan
+```text
+myits_sarprass/
+├── assets/                # Menyimpan aset statis (Logo, Icon, Placeholder)
+├── docs/                  # Dokumentasi Tugas (ERD, Use Case, Bukti Database)
+├── lib/                   # Source code utama aplikasi (Dart)
+│   ├── models/            # Definisi model data (User, Peminjaman, Chat)
+│   ├── pages/             # Halaman-halaman UI (User Interface)
+│   │   ├── booking/       # Fitur form & detail peminjaman
+│   │   ├── chat/          # Fitur live chat
+│   │   ├── informations/  # Fitur informasi, FAQ, & upload pertanyaan
+│   │   ├── login-register/# Fitur autentikasi pengguna
+│   │   └── profile/       # Fitur manajemen profil & edit akun
+│   ├── widgets/           # Komponen UI reusable (Card, Timeline, Input)
+│   ├── main.dart          # Entry point aplikasi & pengaturan routing
+│   └── supabase_config.dart # Konfigurasi koneksi ke Supabase
+└── pubspec.yaml           # Daftar dependencies & library yang digunakan
 
 
 ## 👥 Kontribusi Anggota Tim (Kelompok 8)
