@@ -4,11 +4,13 @@ import 'booking_form_screen.dart';
 class DetailRuanganScreen extends StatelessWidget {
   final int roomId;
   final String roomName;
+  final String imageUrl; // ✅ DARI SUPABASE
 
   const DetailRuanganScreen({
     super.key,
     required this.roomId,
     required this.roomName,
+    required this.imageUrl,
   });
 
   @override
@@ -33,12 +35,15 @@ class DetailRuanganScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // BACK
-                      Row(
-                        children: const [
-                          Icon(Icons.arrow_back_ios, size: 16),
-                          SizedBox(width: 4),
-                          Text('Kembali', style: TextStyle(fontSize: 12)),
-                        ],
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Row(
+                          children: const [
+                            Icon(Icons.arrow_back_ios, size: 16),
+                            SizedBox(width: 4),
+                            Text('Kembali', style: TextStyle(fontSize: 12)),
+                          ],
+                        ),
                       ),
 
                       const SizedBox(height: 12),
@@ -64,14 +69,24 @@ class DetailRuanganScreen extends StatelessWidget {
 
                       const SizedBox(height: 16),
 
-                      // IMAGE
+                      // IMAGE (✅ DARI SUPABASE)
                       ClipRRect(
                         borderRadius: BorderRadius.circular(16),
                         child: Image.network(
-                          'https://picsum.photos/400/250',
+                          imageUrl,
                           height: 180,
                           width: double.infinity,
                           fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) {
+                            return Container(
+                              height: 180,
+                              color: Colors.grey[300],
+                              child: const Icon(
+                                Icons.image_not_supported,
+                                size: 40,
+                              ),
+                            );
+                          },
                         ),
                       ),
 

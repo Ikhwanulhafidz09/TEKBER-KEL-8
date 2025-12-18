@@ -8,6 +8,8 @@ import 'pages/search_page.dart'; // Pastikan di dalam file ini class-nya bernama
 import 'pages/informations/information_page.dart';
 import 'pages/welcome_screen/welcome.dart'; 
 import 'pages/profile/profile.dart';
+import 'pages/riwayat/riwayat_page.dart';
+import 'pages/riwayat/detail_riwayat_page.dart';
 
 // --- IMPORT AUTH PAGES ---
 import 'pages/login-register/login_page.dart'; 
@@ -146,11 +148,11 @@ class MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> pages = [
-      const HomePage(),                                       
-      const Center(child: Text('Halaman Riwayat')),           
+      const HomePage(),
+      const RiwayatPage(),                                                 
       const SearchRuanganPage(),                              
       InformationPage(initialIndex: _infoTabInitialIndex),    
-      const ProfilePage(),                                    
+      const ProfilePage(),                                   
     ];
 
     return Scaffold(

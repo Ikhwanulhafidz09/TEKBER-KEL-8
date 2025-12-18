@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'booking/detail_ruangan_screen.dart';
 
-// ✅ IMPORT PENTING: Pastikan path ini sesuai dengan struktur folder Anda
-import 'booking/detail_ruangan_screen.dart'; 
 
 class SearchRuanganPage extends StatefulWidget {
   const SearchRuanganPage({super.key});
@@ -15,22 +14,21 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
   final SupabaseClient supabase = Supabase.instance.client;
   final TextEditingController _searchController = TextEditingController();
 
-  // ⚠️ PASTIKAN nama bucket ini sesuai dengan yang ada di Supabase Storage Anda
+  // GANTI sesuai bucket Storage kamu
   final String bucketName = 'room-images';
 
   int _selectedCapacity = 0;
   List<String> _selectedFacilities = [];
 
-  // Variabel Filter Tanggal & Waktu
+  // ✅ BARU: filter tanggal & waktu
   DateTime? _selectedDate;
   ShiftOption? _selectedShift;
 
-  // Opsi Shift (Sesuaikan jamnya dengan aturan bisnis Anda)
+  // shift (samakan dengan UI kamu)
   final List<ShiftOption> _shiftOptions = const [
     ShiftOption('Shift 1 (08.00 - 10.00)', 8, 0, 10, 0),
     ShiftOption('Shift 2 (10.00 - 12.00)', 10, 0, 12, 0),
-    ShiftOption('Shift 3 (13.00 - 15.00)', 13, 0, 15, 0),
-    ShiftOption('Shift 4 (15.00 - 17.00)', 15, 0, 17, 0),
+    ShiftOption('Shift 3 (15.00 - 17.00)', 15, 0, 17, 0),
   ];
 
   bool _loading = false;
@@ -42,14 +40,15 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
     _fetchRooms();
   }
 
-  // ================== LOGIKA CEK KETERSEDIAAN ==================
-  // Mengambil ID ruangan yang SUDAH dibooking pada rentang waktu tertentu
+  // ================== BOOKING OVERLAP ==================
+  // Booking overlap rule:
+  // booking.start_time < selectedEnd AND booking.end_time > selectedStart
   Future<List<int>> _fetchBookedRoomIds(DateTime start, DateTime end) async {
     final res = await supabase
         .from('bookings')
         .select('room_id')
-        .lt('start_time', end.toIso8601String()) // Mulai sebelum booking berakhir
-        .gt('end_time', start.toIso8601String()); // Berakhir setelah booking mulai
+        .lt('start_time', end.toIso8601String())
+        .gt('end_time', start.toIso8601String());
 
     final ids = <int>{};
     for (final row in (res as List)) {
@@ -64,7 +63,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
     setState(() => _loading = true);
 
     try {
-      // 1. Hitung Range Waktu jika filter aktif
+      // ✅ BARU: kalau tanggal+shift dipilih, hitung range waktu dan cari booked IDs
       DateTime? start;
       DateTime? end;
       if (_selectedDate != null && _selectedShift != null) {
@@ -84,35 +83,31 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
         );
       }
 
-      // 2. Cari ID ruangan yang sibuk (booked)
       List<int> bookedIds = [];
       if (start != null && end != null) {
         bookedIds = await _fetchBookedRoomIds(start, end);
       }
 
-      // 3. Query Utama ke Tabel Rooms
       var q = supabase.from('rooms').select(
         'id, nama_ruangan, deskripsi, kapasitas, lokasi, harga_sewa, facilities, image_path',
       );
 
-      // Filter Pencarian Teks
       if (query.trim().isNotEmpty) {
         q = q.or('nama_ruangan.ilike.%$query%,lokasi.ilike.%$query%');
       }
 
-      // Filter Kapasitas
       if (_selectedCapacity > 0) {
         q = q.gte('kapasitas', _selectedCapacity);
       }
 
-      // Filter Fasilitas
       if (_selectedFacilities.isNotEmpty) {
         q = q.contains('facilities', _selectedFacilities);
       }
 
-      // Filter: Exclude ruangan yang sudah dibooking (Not In)
+      // ✅ BARU: exclude room yang sudah booked di range waktu
       if (bookedIds.isNotEmpty) {
-        final inStr = '(${bookedIds.join(',')})'; // Format "(1,2,5)"
+        // supabase dart butuh format "(1,2,3)"
+        final inStr = '(${bookedIds.join(',')})';
         q = q.not('id', 'in', inStr);
       }
 
@@ -121,7 +116,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
       setState(() {
         rooms = (data as List).map<Map<String, dynamic>>((r) {
           return {
-            'id': r['id'].toString(), // Simpan sementara sebagai String
+            'id': r['id'].toString(),
             'name': r['nama_ruangan'] ?? '-',
             'location': r['lokasi'] ?? '-',
             'description': r['deskripsi'] ?? '',
@@ -150,13 +145,15 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
     setState(() {
       _selectedCapacity = 0;
       _selectedFacilities.clear();
+
+      // ✅ BARU
       _selectedDate = null;
       _selectedShift = null;
     });
     _applyFilters();
   }
 
-  // ============ FILTER SHEET (MODAL) ============
+  // ============ FILTER SHEET ============
   void _showFilterDialog() {
     showModalBottomSheet(
       context: context,
@@ -179,7 +176,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header Modal
+                  // Header
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -195,6 +192,8 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
                           setModalState(() {
                             _selectedCapacity = 0;
                             _selectedFacilities.clear();
+
+                            // ✅ BARU
                             _selectedDate = null;
                             _selectedShift = null;
                           });
@@ -206,7 +205,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
 
                   const SizedBox(height: 16),
 
-                  // --- Filter Tanggal ---
+                  // ✅ BARU: TANGGAL
                   const Text(
                     'Tanggal',
                     style: TextStyle(fontWeight: FontWeight.w600),
@@ -227,8 +226,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
                     },
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 14),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.black26),
                         borderRadius: BorderRadius.circular(12),
@@ -245,7 +243,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
 
                   const SizedBox(height: 16),
 
-                  // --- Filter Waktu (Shift) ---
+                  // ✅ BARU: WAKTU (SHIFT)
                   const Text(
                     'Waktu',
                     style: TextStyle(fontWeight: FontWeight.w600),
@@ -279,7 +277,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
 
                   const SizedBox(height: 18),
 
-                  // --- Filter Kapasitas ---
+                  // Capacity
                   const Text(
                     'Capacity',
                     style: TextStyle(fontWeight: FontWeight.w600),
@@ -297,7 +295,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
 
                   const SizedBox(height: 18),
 
-                  // --- Filter Fasilitas ---
+                  // Facilities
                   const Text(
                     'Facilities',
                     style: TextStyle(fontWeight: FontWeight.w600),
@@ -317,7 +315,6 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
 
                   const Spacer(),
 
-                  // Tombol Aksi Bawah
                   Row(
                     children: [
                       Expanded(
@@ -401,12 +398,11 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
     );
   }
 
-  // ============ HELPER IMAGE URL ============
+  // ============ IMAGE URL BUILDER ============
   String _roomImageUrl(String imagePath) {
     if (imagePath.trim().isEmpty) {
       return 'https://via.placeholder.com/300x300.png?text=Room';
     }
-    // Dapatkan Public URL dari Supabase Storage
     return supabase.storage.from(bucketName).getPublicUrl(imagePath);
   }
 
@@ -483,7 +479,6 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
             ),
           ),
 
-          // List Ruangan
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
@@ -518,26 +513,24 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
     );
   }
 
-  // ============ CARD UI ============
+  // Card UI + image storage
   Widget _buildRoomCard(Map<String, dynamic> room) {
     final facilities = (room['facilities'] as List<String>);
     final facilitiesText = facilities.isEmpty ? '-' : facilities.join(', ');
+
     final imageUrl = _roomImageUrl(room['imagePath'] ?? '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
-        // ✅ LOGIKA NAVIGASI KE DETAIL
         onTap: () {
-          // Parsing aman dari String (di map) ke Int (yang dibutuhkan page detail)
-          final int roomId = int.tryParse(room['id'].toString()) ?? 0;
-          
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => DetailRuanganScreen(
-                roomId: roomId,
-                roomName: room['name'],
+              builder: (_) => DetailRuanganScreen(
+                roomId: int.parse(room['id'].toString()),
+                roomName: room['name'] ?? '-',
+                imageUrl: _roomImageUrl(room['imagePath'] ?? ''),
               ),
             ),
           );
@@ -553,7 +546,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Image Kiri
+                // Image kiri
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: Image.network(
@@ -572,7 +565,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
 
                 const SizedBox(width: 12),
 
-                // Info Kanan
+                // Info kanan
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -599,7 +592,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
 
                       Text(
                         room['description'],
-                        maxLines: 2,
+                        maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 12.5,
@@ -610,7 +603,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
 
                       const SizedBox(height: 10),
 
-                      // Fasilitas
+                      // fasilitas
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -633,7 +626,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
 
                       const SizedBox(height: 6),
 
-                      // Kapasitas
+                      // kapasitas
                       Row(
                         children: [
                           Icon(Icons.people,
@@ -666,7 +659,7 @@ class _SearchRuanganPageState extends State<SearchRuanganPage> {
   }
 }
 
-// MODEL SHIFT
+// ✅ BARU: model shift
 class ShiftOption {
   final String label;
   final int startHour;
